@@ -18,8 +18,10 @@ MAX_DECEL = 1.0
 class WaypointLoader(object):
 
     def __init__(self):
+        # creating waypoint_loader node with log level DEBUG
         rospy.init_node('waypoint_loader', log_level=rospy.DEBUG)
 
+        # creating publisher to publish base_waypoints
         self.pub = rospy.Publisher('/base_waypoints', Lane, queue_size=1, latch=True)
 
         self.velocity = self.kmph2mps(rospy.get_param('~velocity'))
@@ -37,8 +39,9 @@ class WaypointLoader(object):
     def quaternion_from_yaw(self, yaw):
         return tf.transformations.quaternion_from_euler(0., 0., yaw)
 
+    # converts velocity from kmph to mps
     def kmph2mps(self, velocity_kmph):
-        return (velocity_kmph * 1000.) / (60. * 60.)
+        return (velocity_kmph * 1000.) / (60. * 60.);
 
     def load_waypoints(self, fname):
         waypoints = []
@@ -50,6 +53,7 @@ class WaypointLoader(object):
                 p.pose.pose.position.y = float(wp['y'])
                 p.pose.pose.position.z = float(wp['z'])
                 q = self.quaternion_from_yaw(float(wp['yaw']))
+                # Refernece for use of '*' in python : https://medium.com/understand-the-python/understanding-the-asterisk-of-python-8b9daaa4a558
                 p.pose.pose.orientation = Quaternion(*q)
                 p.twist.twist.linear.x = float(self.velocity)
 
@@ -65,6 +69,8 @@ class WaypointLoader(object):
         last.twist.twist.linear.x = 0.
         for wp in waypoints[:-1][::-1]:
             dist = self.distance(wp.pose.pose.position, last.pose.pose.position)
+            # Newton's Motion Law vf**2 = vo**2 + 2 • a • d ; vf = final velocity = 0 (in our case)
+            # vo**2 = 
             vel = math.sqrt(2 * MAX_DECEL * dist)
             if vel < 1.:
                 vel = 0.

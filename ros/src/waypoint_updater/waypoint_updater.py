@@ -28,25 +28,51 @@ class WaypointUpdater(object):
     def __init__(self):
         rospy.init_node('waypoint_updater')
 
+        # -------------- Subscribers -----------------------------
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
-        # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
+        # DONE: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
+        rospy.Subscriber('/traffic_waypoint',Waypoint,self.traffic_cb);
+        rospy.Subscriber('/obstacle_waypoint',Waypoint,self.obstacle_cb);
 
-
+        # -------------- Subscribers -----------------------------
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         # TODO: Add other member variables you need below
+        self.car_pose = None;
+        self.base_waypoints = None;
+        #self.waypoints_to_publish = None;
+        self.loop();
 
         rospy.spin()
 
+    def loop():
+        rate = rospy.Rate(50) # in Hz
+        waypoints = [];
+        while not rospy.is_shutdowm():
+            closest_wp_idx = self.find_closest_waypoint();
+            
+            
+            rate.sleep();
+    
+    def publish_waypoints(self,closest_wp_idx):
+        # DOUBT : What's Lane and how n where to use it?
+        lane = Lane();
+        lane.header = self.base_waypoints.header;
+        lane.waypoints = self.base_waypoints[ closest_wp_idx : closest_wp_idx + LOOKAHEAD_WPS ]
+        self.final_waypoints_pub.publish(lane);
+
     def pose_cb(self, msg):
         # TODO: Implement
-        pass
+        self.car_pose = msg.PoseStamped;
 
     def waypoints_cb(self, waypoints):
         # TODO: Implement
-        pass
+        # DOUBT
+        # Latching the base waypoints
+        if not (self.base_waypoints = None):
+            self.base_waypoints = waypoints;
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
