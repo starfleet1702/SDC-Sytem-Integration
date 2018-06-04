@@ -46,6 +46,7 @@ class DBWNode(object):
         max_lat_accel = rospy.get_param('~max_lat_accel', 3.)
         max_steer_angle = rospy.get_param('~max_steer_angle', 8.)
 
+        # 3 publisher for 3 control params
         self.steer_pub = rospy.Publisher('/vehicle/steering_cmd',
                                          SteeringCmd, queue_size=1)
         self.throttle_pub = rospy.Publisher('/vehicle/throttle_cmd',
@@ -56,7 +57,10 @@ class DBWNode(object):
         # TODO: Create `Controller` object
         # self.controller = Controller(<Arguments you wish to provide>)
 
-        # TODO: Subscribe to all the topics you need to
+        # DONE : Subscribe to all the topics you need to
+        rospy.Subscriber('/vehicle/dbw_enabled',Bool,self.dbw_enable_cb);
+        rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cb);
+        rospy.Subscriber('/current_velocity', TwistStamped, self.velocity_cb);
 
         self.loop()
 

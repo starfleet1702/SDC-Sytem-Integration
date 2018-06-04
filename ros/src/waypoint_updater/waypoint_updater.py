@@ -4,6 +4,7 @@ import rospy
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
 from scipy.spatial import KDTree;
+import numpy as np;
 
 import math
 
@@ -44,7 +45,7 @@ class WaypointUpdater(object):
         self.car_pose = None;
         self.base_waypoints = None;
         self.waypoints_2d = None;
-        
+        self.waypoint_tree = None;
         
         #self.waypoints_to_publish = None;
         self.loop();
@@ -52,11 +53,11 @@ class WaypointUpdater(object):
         # spin() simply keeps python from exiting until this node is stopped
         # rospy.spin()
 
-    def loop():
+    def loop(self):
         rate = rospy.Rate(50) # in Hz
         waypoints = [];
-        while not rospy.is_shutdowm():
-            if self.pose and self,base_waypoints:
+        while not rospy.is_shutdown():
+            if self.car_pose and self.base_waypoints:
                 closest_wp_idx = self.find_closest_waypoint();
                 self.publish_waypoints(closest_wp_idx);
             rate.sleep();
@@ -90,20 +91,20 @@ class WaypointUpdater(object):
         # DOUBT : What's Lane and how n where to use it?
         lane = Lane();
         lane.header = self.base_waypoints.header;
-        lane.waypoints = self.base_waypoints[ closest_wp_idx : closest_wp_idx + LOOKAHEAD_WPS ]
+        lane.waypoints = self.base_waypoints.waypoints[ closest_wp_idx : closest_wp_idx + LOOKAHEAD_WPS ]
         self.final_waypoints_pub.publish(lane);
 
     def pose_cb(self, msg):
-        # TODO: Implement
-        self.car_pose = msg.PoseStamped;
+        # DONE : Implement
+        self.car_pose = msg;
 
     def waypoints_cb(self, waypoints):
-        # TODO: Implement
+        # DONE: Implement
         # DOUBT
         # Storing the base waypoints
         self.base_waypoints = waypoints;
         if not self.waypoints_2d:
-            self.waypoints_2d = [[wp.pose.pose.position.x , wp.pose.pose.position.y] for wp in waypoints.waypoint];
+            self.waypoints_2d = [[wp.pose.pose.position.x , wp.pose.pose.position.y] for wp in waypoints.waypoints];
             self.waypoint_tree = KDTree(self.waypoints_2d);
             
     def traffic_cb(self, msg):

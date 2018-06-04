@@ -75,7 +75,7 @@ class WaypointLoader(object):
         last.twist.twist.linear.x = 0.
         for wp in waypoints[:-1][::-1]:
             dist = self.distance(wp.pose.pose.position, last.pose.pose.position)
-            # Newton's Motion Law vf**2 = vo**2 + 2 • a • d ; vf = final velocity = 0 (in our case)
+            # Newton's Motion Law vf**2 = vo**2 + 2 * a * d ; vf = final velocity = 0 (in our case)
             # vo**2 = 
             vel = math.sqrt(2 * MAX_DECEL * dist)
             if vel < 1.:
