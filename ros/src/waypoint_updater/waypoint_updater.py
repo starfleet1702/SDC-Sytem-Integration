@@ -3,6 +3,7 @@
 import rospy
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
+from scipy.spatial import KDTree;
 
 import math
 
@@ -42,20 +43,49 @@ class WaypointUpdater(object):
         # TODO: Add other member variables you need below
         self.car_pose = None;
         self.base_waypoints = None;
+        self.waypoints_2d = None;
+        
+        
         #self.waypoints_to_publish = None;
         self.loop();
 
-        rospy.spin()
+        # spin() simply keeps python from exiting until this node is stopped
+        # rospy.spin()
 
     def loop():
         rate = rospy.Rate(50) # in Hz
         waypoints = [];
         while not rospy.is_shutdowm():
-            closest_wp_idx = self.find_closest_waypoint();
-            
-            
+            if self.pose and self,base_waypoints:
+                closest_wp_idx = self.find_closest_waypoint();
+                self.publish_waypoints(closest_wp_idx);
             rate.sleep();
     
+    def find_closest_waypoint(self):
+        x = self.car_pose.pose.position.x;
+        y = self.car_pose.pose.position.y;
+        # KDTree.query(x, k=1, eps=0, p=2, distance_upper_bound=inf)
+        # k : integer : The number of nearest neighbors to return
+        # returns [[distances][indices]] 
+        # return tuple (dist,idx) if only 1 point is passed to query
+        closest_wp_idx = self.waypoint_tree.query([x,y], 1)[1];
+
+        # checking if the closest_wp is in front of the car or in the back
+        closest_wp = self.waypoints_2d[closest_wp_idx];
+        prev_wp = self.waypoints_2d[closest_wp_idx-1];
+
+        # Equations for hyper plane through closest_wp
+        closest_wp_vect = np.array(closest_wp);
+        cur_pose_vect = np.array([x,y]);
+        prev_wp_vect = np.array(prev_wp);
+
+        dot_prod = np.dot(closest_wp_vect - prev_wp_vect, cur_pose_vect - closest_wp_vect);
+        if dot_prod>0.0:
+            # take next waypoint
+            # DOUBT : Why are we using modulo , are we considering full path as a circular path?
+            closest_wp_idx = (closest_wp_idx+1) % len(self.waypoints_2d);
+        return closest_wp_idx;
+
     def publish_waypoints(self,closest_wp_idx):
         # DOUBT : What's Lane and how n where to use it?
         lane = Lane();
@@ -70,10 +100,12 @@ class WaypointUpdater(object):
     def waypoints_cb(self, waypoints):
         # TODO: Implement
         # DOUBT
-        # Latching the base waypoints
-        if not (self.base_waypoints = None):
-            self.base_waypoints = waypoints;
-
+        # Storing the base waypoints
+        self.base_waypoints = waypoints;
+        if not self.waypoints_2d:
+            self.waypoints_2d = [[wp.pose.pose.position.x , wp.pose.pose.position.y] for wp in waypoints.waypoint];
+            self.waypoint_tree = KDTree(self.waypoints_2d);
+            
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
         pass

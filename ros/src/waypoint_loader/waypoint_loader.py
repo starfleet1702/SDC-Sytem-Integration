@@ -22,17 +22,23 @@ class WaypointLoader(object):
         rospy.init_node('waypoint_loader', log_level=rospy.DEBUG)
 
         # creating publisher to publish base_waypoints
+        ''' latch = False (Default)
+        # Enable 'latching' on the connection. When a connection is latched, 
+        # the last message published is saved and sent to any future subscribers that connect.
+        # This is useful for slow-changing or static data like a map'''
         self.pub = rospy.Publisher('/base_waypoints', Lane, queue_size=1, latch=True)
-
+        # This Params have been set in waypoint_loader.launch file
         self.velocity = self.kmph2mps(rospy.get_param('~velocity'))
+        # Publishes waypoints when initialized
         self.new_waypoint_loader(rospy.get_param('~path'))
+        # spin() simply keeps python from exiting until this node is stopped
         rospy.spin()
-
+    
     def new_waypoint_loader(self, path):
         if os.path.isfile(path):
             waypoints = self.load_waypoints(path)
             self.publish(waypoints)
-            rospy.loginfo('Waypoint Loded')
+            rospy.loginfo('Waypoint Loaded')
         else:
             rospy.logerr('%s is not a file', path)
 
