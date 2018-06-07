@@ -96,7 +96,8 @@ class WaypointUpdater(object):
 
 
     def gen_lane(self,closest_idx):
-        if(self.last_lane_wp is not None and self.last_close_waypoint_idx == closest_idx and self.last_stop_line_wp_idx == self.stop_line_wp_idx):
+        if((self.last_lane_wp is not None) and self.last_close_waypoint_idx == closest_idx and self.last_stop_line_wp_idx == self.stop_line_wp_idx):
+            rospy.logwarn("Not updating closest_idx: %s cur_vel : %s",closest_idx,self.cur_vel);
             return self.last_lane_wp;
 
         lane = Lane();
@@ -113,7 +114,7 @@ class WaypointUpdater(object):
             #rospy.loginfo("WaypointUpdater : Found a Non Red Light Ahead!!");
             #rospy.loginfo("WaypointUpdater : gen_lane : %s",self.stop_line_wp_idx);l
             lane.waypoints = self.base_waypoints.waypoints[closest_idx : farthest_idx];
-        # self.last_close_waypoint_idx = closest_idx;
+        self.last_close_waypoint_idx = closest_idx;
         self.last_lane_wp = lane;
         self.last_stop_line_wp_idx = self.stop_line_wp_idx;
         return lane;
@@ -148,7 +149,7 @@ class WaypointUpdater(object):
             #last_wp_idx = farthest_idx;
             waypoints_before_stop_line = deepcopy(self.base_waypoints.waypoints[closest_idx : farthest_idx + 1]);
             total_dist = self.distance_along_path(self.base_waypoints.waypoints,farthest_idx,stop_line_wp_idx_local);
-        rospy.logdebug(" decel : closest_idx: %s ,farthest_idx : %s ,stop_idx : %s ,cur_vel = %s",closest_idx,farthest_idx,stop_line_wp_idx_local,self.cur_vel);
+        rospy.logwarn(" decel : closest_idx: %s ,farthest_idx : %s ,stop_idx : %s ,cur_vel = %s",closest_idx,farthest_idx,stop_line_wp_idx_local,self.cur_vel);
         prev_waypoint_idx = len(waypoints_before_stop_line)-1;
 
         # Iterating over waypoints_before_stop_line till last_wp in reverse
@@ -160,7 +161,7 @@ class WaypointUpdater(object):
             if vel < 1.0:
                 vel = 0.0;
             vel = min(vel,waypoints_before_stop_line[i].twist.twist.linear.x);
-            rospy.logdebug(" decel : vel : %s at : %s ",vel,closest_idx+i);
+            rospy.logwarn(" decel : vel : %s at : %s ",vel,closest_idx+i);
             waypoints_before_stop_line[i].twist.twist.linear.x = vel;
             prev_waypoint_idx = i;
         return waypoints_before_stop_line + waypoints_after_stop_line;

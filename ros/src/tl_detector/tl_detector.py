@@ -159,7 +159,8 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        #rospy.loginfo("process_traffic_lights")
+        # rospy.loginfo("In process_traffic_lights")
+
         closest_light = None;
         closest_line_wp_idx = None;
 
@@ -168,7 +169,7 @@ class TLDetector(object):
         if(self.pose):
             car_wp_idx = self.get_closest_waypoint(self.pose.pose.position.x,self.pose.pose.position.y);
 
-        #DONE : find the closest visible traffic light (if one exists)
+        # DONE : find the closest visible traffic light (if one exists)
         closest_line_dist = len(self.waypoints.waypoints);
         for i,light in enumerate(self.lights):
             cur_stop_line_pos = stop_line_positions[i];
@@ -176,10 +177,12 @@ class TLDetector(object):
 
             # initializing closest light distance
             cur_line_dist = cur_stop_line_wp_idx - car_wp_idx;
-            # Checking If stop line is in front of the car (dist>0)
+
             #rospy.logwarn(" tl_detector : i: %s cur_stop_line_pos: %s ,cur_stop_line_wp_idx : %s ,closest_line_dist : %s ,cur_line_dist: %s", i,cur_stop_line_pos,
             #             cur_stop_line_wp_idx, closest_line_dist, cur_line_dist);
-            if 0 <= cur_line_dist < closest_line_dist:
+
+            # Checking If stop line is in front of the car (dist>0)
+            if cur_line_dist >= 0.0 and cur_line_dist < closest_line_dist:
                 closest_line_dist = cur_line_dist;
                 closest_light = light;
                 closest_line_wp_idx = cur_stop_line_wp_idx;
@@ -187,7 +190,8 @@ class TLDetector(object):
         if closest_light:
             state = self.get_light_state(light);
             return closest_line_wp_idx, state
-        rospy.loginfo("process_traffic_lights : No nearby light detected");
+
+        rospy.loginfo("In Process_traffic_lights : No Nearby lights detected");
         #rospy.loginfo("process_traffic_lights : current pose of the car %s",self.pose);
         return -1, TrafficLight.UNKNOWN
 

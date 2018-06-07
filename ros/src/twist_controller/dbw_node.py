@@ -60,9 +60,12 @@ class DBWNode(object):
         self.linear_vel = None
         self.angular_vel = None
         
-        self.throttle = self.steering = self.brake = 0
+        self.throttle = 0.0;
+        self.steering = 0.0;
+        self.brake = 0.0;
         self.dbw_enabled = False
-        # TODO: Subscribe to all the topics you need to
+
+        # DONE: Subscribe to all the topics you need to
         rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_cb)
         rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cb)
         rospy.Subscriber('/current_velocity', TwistStamped, self.velocity_cb)
@@ -76,11 +79,10 @@ class DBWNode(object):
             # DONE: Get predicted throttle, brake, and steering using `twist_controller`
             # You should only publish the control commands if dbw is enabled
             if not None in (self.current_vel, self.linear_vel, self.angular_vel ):
-                # rospy.logwarn('not None in (self.current_vel, self.linear_vel, self.angular_vel )')
                 self.throttle, self.brake, self.steering = self.controller.control(self.current_vel,
                                                                      self.dbw_enabled,
                                                                      self.linear_vel,
-                                                                     self.angular_vel)
+                                                                     self.angular_vel);
             if self.dbw_enabled:
                 self.publish(self.throttle, self.brake, self.steering)
             rate.sleep()
@@ -105,16 +107,14 @@ class DBWNode(object):
 
 
     def dbw_enabled_cb(self, msg):
-        self.dbw_enabled = bool(msg.data)
+        self.dbw_enabled=bool(msg.data);
 
     def twist_cb(self, msg):
-        self.linear_vel = msg.twist.linear.x
-        self.angular_vel = msg.twist.angular.z
+        self.linear_vel = msg.twist.linear.x;
+        self.angular_vel = msg.twist.angular.z;
 
     def velocity_cb(self, msg):
         self.current_vel = msg.twist.linear.x
-
-        
 
 if __name__ == '__main__':
     DBWNode()
