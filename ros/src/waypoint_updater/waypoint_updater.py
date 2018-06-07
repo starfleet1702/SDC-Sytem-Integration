@@ -137,7 +137,7 @@ class WaypointUpdater(object):
         # If stop line is in our range of LOOKAHEAD_WPS
         if(farthest_idx >= stop_line_wp_idx_local):
             #last_wp_idx = stop_line_wp_idx_local;
-            waypoints_before_stop_line = deepcopy(self.base_waypoints.waypoints[closest_idx : stop_line_wp_idx_local]);
+            waypoints_before_stop_line = deepcopy(self.base_waypoints.wlaypoints[closest_idx : stop_line_wp_idx_local]);
             waypoints_after_stop_line = deepcopy(self.base_waypoints.waypoints[stop_line_wp_idx_local : farthest_idx+1]);
             for i,wp in enumerate(waypoints_after_stop_line):
                 wp.twist.twist.linear.x = 0.0;
@@ -158,6 +158,7 @@ class WaypointUpdater(object):
             if vel < 1.0:
                 vel = 0.0;
             vel = min(vel,waypoints_before_stop_line[i].twist.twist.linear.x);
+            rospy.logdebug(" decel : vel : %s at : %s ",vel,closest_idx+i);
             waypoints_before_stop_line[i].twist.twist.linear.x = vel;
             prev_waypoint_idx = i;
         return waypoints_before_stop_line + waypoints_after_stop_line;
