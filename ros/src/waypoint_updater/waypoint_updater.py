@@ -137,7 +137,7 @@ class WaypointUpdater(object):
         # If stop line is in our range of LOOKAHEAD_WPS
         if(farthest_idx >= stop_line_wp_idx_local):
             #last_wp_idx = stop_line_wp_idx_local;
-            waypoints_before_stop_line = deepcopy(self.base_waypoints.wlaypoints[closest_idx : stop_line_wp_idx_local]);
+            waypoints_before_stop_line = deepcopy(self.base_waypoints.waypoints[closest_idx : stop_line_wp_idx_local]);
             waypoints_after_stop_line = deepcopy(self.base_waypoints.waypoints[stop_line_wp_idx_local : farthest_idx+1]);
             for i,wp in enumerate(waypoints_after_stop_line):
                 wp.twist.twist.linear.x = 0.0;
