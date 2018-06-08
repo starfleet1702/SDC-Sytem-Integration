@@ -1,0 +1,25 @@
+
+calc_dist_bw_wp -> dist_bw_wp[] -> update it every iteration
+last_closest_wp_idx 
+last_farthest_wp
+last_stop_line_wp_idx
+last_lane
+last_wps
+
+# check if stop_line_ahead and farthest_point is in range of stop_distance
+if not then :
+	slice base_wp and send
+else:
+
+	# check if recalculation is requirred
+	if not then
+	if(last_closest_wp_idx==cur_closest_wp_idx and
+		last_stop_line_wp_idx == cur_stop_line_wp_idx)
+		return last_lane;
+	else:
+		wp = []
+		update_dist_bw_wp(last_farthest_wp,cur_farthest_wp);
+		start_wp_to_decel = find_start_wp_to_decel();-> traverse 
+		wp += copy base_wp[closest_wp:start_wp_to_decel];
+		wp += decel_wp(start_wp_to_decel,cur_farthest_wp,last_farthest_wp,last_wps);
+		last_wps = wp;

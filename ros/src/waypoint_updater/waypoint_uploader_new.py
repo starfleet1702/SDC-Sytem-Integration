@@ -34,8 +34,10 @@ MPH_TO_MPS = 0.44704;
 
 class WaypointUpdater(object):
     def __init__(self):
+        #------------------- Node ---------------------------------
         rospy.init_node('waypoint_updater',log_level=rospy.DEBUG);
-
+        
+        #------------------- Subscriber ----------------------------
         # DONE: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
@@ -43,17 +45,23 @@ class WaypointUpdater(object):
         rospy.Subscriber('/obstacle_waypoint', Int32, self.obstacle_cb);
 
         rospy.Subscriber('/current_velocity', TwistStamped, self.velocity_cb)
-
+        
+        #------------------- Publisher ----------------------------
         self.final_waypoints_pub = rospy.Publisher('/final_waypoints', Lane, queue_size=1)
 
-        # DONE: Add other member variables you need below
+        #------------- member variables ----------------------------
         self.pose = None
         self.base_waypoints = None
         self.waypoints_2d = None
         self.waypoint_tree = None
         self.stop_line_wp_idx = None;
         self.cur_vel = None;
-
+		
+		self.dist_bw_wp_list = None;
+		self.last_farthest_wp_idx = None;
+		self.cur_farthest_wp_idx = None;
+		self.cur_closest_wp_idx = None;
+		
         self.last_stop_line_wp_idx = None;
         self.last_close_waypoint_idx = None;
         self.last_lane_wp = None;
@@ -62,6 +70,14 @@ class WaypointUpdater(object):
        
         self.loop()
     
+	def update_dist_bw_wp(self):
+		# Initialization
+		if(self.last_farthest_wp == None or self.dist_bw_wp == None):
+			_,self.dist_bw_wp_list = self.distance_along_path(self.base_waypoints,self.cur_closest_wp_idx, self.cur_farthest_wp_idx));
+		else: # Update
+			self.dist_bw_wp_list.append(self.distance_along_path(self.base_waypoints,self.last_farthest_wp_idx, self.cur_farthest_wp_idx)));
+			
+					  
     def calc_stop_distance(self):
       max_vel_mps = self.kmph2mps(rospy.get_param('~velocity'));
       stop_distance = (max_vel_mps**2)/2.0*MAX_DECEL;
@@ -206,21 +222,16 @@ class WaypointUpdater(object):
         waypoints[waypoint].twist.twist.linear.x = velocity
 
     def distance_along_path(self, waypoints, wp1, wp2):
-        dist = 0
+        total_dist = 0;
+		dist_list = [];
         dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
         for i in range(wp1, wp2+1):
-            dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
+			cur_dist = dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position);
+			dist_list.append(cur_dist);
+            total_dist += cur_dist
             wp1 = i
-        return dist
-    
-    def distance_along_path(self, waypoints, wp1, wp2):
-        dist = 0;
-        dist_list = [];
-        dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
-        for i in range(wp1, wp2+1):
-            dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
-            wp1 = i
-        return dist                      
+        return total_dist,dist_list
+                      
                       
     def distance(self, p1, p2):
         x, y, z = p1.x - p2.x, p1.y - p2.y, p1.z - p2.z
